@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adaptive Learning</title>
+</head>
+<body>
+
+<h1>Adaptive Learning System 🚀</h1>
+
+<button onclick="loadQuestion()">Start</button>
+
+<h2 id="question">Click Start to load question</h2>
+
+<script>
+async function loadQuestion() {
+    try {
+        const response = await fetch("/question");  // IMPORTANT: no full URL
+        const data = await response.json();
+
+        document.getElementById("question").innerText = data.question;
+
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+</script>
+
+</body>
+</html>
