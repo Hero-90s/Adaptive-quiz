@@ -1,4 +1,4 @@
-# main.py - Advanced Adaptive Learning System (Fixed for Render)
+# main.py - Advanced Adaptive Learning System (Final Fixed Version)
 import os
 import sys
 import logging
@@ -6,7 +6,13 @@ from flask import Flask, jsonify, request, render_template_string, session, redi
 from flask_cors import CORS
 import dotenv
 from rich.console import Console
-
+from Core.AI.llm_groq import LLMGroq
+from Core.Engine.adaptive_engine import AdaptiveEngine
+from Core.AI.prompt_engineering import PromptEngine
+from Core.AI.response_optimizer import ResponseOptimizer
+from Core.Memory.long_term_memory import LongTermMemory
+from Core.Engine.decision_model import DecisionModel   
+from Core.Engine.reinforcement_learning import ReinforcementModel
 dotenv.load_dotenv()
 console = Console()
 
@@ -18,27 +24,20 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = "adaptive-secret-key-2026"
 
-# Add current directory to Python path so 'Core' folder can be found
+# Add current directory to Python path so Core folder can be found on Render
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # Global system instance
 system = None
 
-# ====================== SAFE CORE IMPORT WITH FALLBACK ======================
-try:
-    from Core.AI.llm_groq import LLMGroq
-    from Core.Engine.adaptive_engine import AdaptiveEngine
-    from Core.AI.prompt_engineering import PromptEngine
-    from Core.AI.response_optimizer import ResponseOptimizer
-    from Core.Memory.long_term_memory import LongTermMemory
-    from Core.Engine.decision_model import DecisionModel
-    from Core.Engine.reinforcement_learning import ReinforcementModel
 
-    class AdaptiveLearningSystem:
-        def __init__(self):
+class AdaptiveLearningSystem:
+    def __init__(self):
+        try:
             self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
 
+            # Full integration of all modules
             self.prompt_engine = PromptEngine()
             self.response_optimizer = ResponseOptimizer()
             self.long_term_memory = LongTermMemory()
@@ -51,16 +50,20 @@ try:
             self.last_question = None
 
             logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully with all modules")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize AdaptiveLearningSystem: {e}")
+            raise
 
+
+# Initialize system safely
+try:
     system = AdaptiveLearningSystem()
-
 except Exception as e:
-    logger.error(f"❌ Failed to load Core modules: {e}")
-    logger.warning("⚠️ Running in limited mode without full AI engine")
+    logger.critical(f"Critical failure during system init: {e}")
     system = None
 
 
-# ====================== HOME PAGE (Your Original) ======================
+# ====================== HOME PAGE (Improved Dropdown Visibility) ======================
 @app.route("/")
 def home():
     return render_template_string("""
@@ -165,6 +168,7 @@ def start_quiz():
     return redirect("/quiz")
 
 
+# ====================== QUIZ PAGE ======================
 @app.route("/quiz")
 def quiz_page():
     return render_template_string("""
@@ -328,6 +332,7 @@ def answer():
         return jsonify({"correct": False, "message": "Error processing your answer"}), 500
 
 
+# ====================== RESULTS PAGE ======================
 @app.route("/results")
 def results():
     if not system or system.student_id not in system.engine.current_session:
@@ -445,6 +450,7 @@ def teacher_dashboard():
             });
             
             alert("✅ Question added successfully!");
+            // Clear inputs
             ['q','a','opt1','opt2','opt3','opt4'].forEach(id => document.getElementById(id).value = '');
         }
         </script>
@@ -456,13 +462,12 @@ def teacher_dashboard():
 def add_teacher_question():
     try:
         data = request.json
-        if system and hasattr(system.engine, 'add_teacher_question'):
-            system.engine.add_teacher_question(
-                data["question"], 
-                data["answer"], 
-                data.get("topic", "Cyber Security"),
-                data.get("options")
-            )
+        system.engine.add_teacher_question(
+            data["question"], 
+            data["answer"], 
+            data.get("topic", "Cyber Security"),
+            data.get("options")
+        )
         return jsonify({"status": "success", "message": "Question added successfully"})
     except Exception as e:
         logger.error(f"Teacher question error: {e}")
@@ -471,11 +476,11 @@ def add_teacher_question():
 
 # ====================== ENTRY POINT ======================
 if __name__ == "__main__":
-    print("="*70)
+    print("="*60)
     print("🌟 ADVANCED ADAPTIVE LEARNING SYSTEM STARTED")
-    print("="*70)
+    print("="*60)
     print("🔗 Student Portal : http://localhost:5000")
     print("👨‍🏫 Teacher Dashboard : http://localhost:5000/teacher")
     print("📌 Run with ngrok: ngrok http 5000")
-    print("="*70)
+    print("="*60)
     app.run(host='0.0.0.0', port=5000, debug=True)
