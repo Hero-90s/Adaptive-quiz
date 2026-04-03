@@ -1,4 +1,4 @@
-# main.py - Advanced Adaptive Learning System (Final Fixed Version)
+# main.py - Advanced Adaptive Learning System (Fixed for Render)
 import os
 import sys
 import logging
@@ -7,27 +7,36 @@ from flask_cors import CORS
 import dotenv
 from rich.console import Console
 
-# Add current directory to Python path so 'Core' folder can be found on Render
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+# ====================== PATH SETUP (Critical for Render) ======================
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, BASE_DIR)
+
+# Ensure Core is treated as a package
+if not os.path.exists(os.path.join(BASE_DIR, "Core")):
+    logging.error("❌ 'Core' directory not found! Make sure it exists in the root.")
 
 dotenv.load_dotenv()
 console = Console()
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "adaptive-secret-key-2026"
 
-# Global system instance
+# Global system instance (will be initialized lazily)
 system = None
 
 
 class AdaptiveLearningSystem:
     def __init__(self):
         try:
+            # Absolute imports - more reliable on deployment platforms
             from Core.AI.llm_groq import LLMGroq
             from Core.Engine.adaptive_engine import AdaptiveEngine
             from Core.AI.prompt_engineering import PromptEngine
@@ -35,6 +44,7 @@ class AdaptiveLearningSystem:
             from Core.Memory.long_term_memory import LongTermMemory
             from Core.Engine.decision_model import DecisionModel
             from Core.Engine.reinforcement_learning import ReinforcementModel
+
             self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
 
@@ -56,15 +66,19 @@ class AdaptiveLearningSystem:
             raise
 
 
-# Initialize system safely
-try:
-    system = AdaptiveLearningSystem()
-except Exception as e:
-    logger.critical(f"Critical failure during system init: {e}")
-    system = None
+def get_system():
+    """Lazy initialization of the system to prevent startup crashes"""
+    global system
+    if system is None:
+        try:
+            system = AdaptiveLearningSystem()
+        except Exception as e:
+            logger.critical(f"Critical failure during system init: {e}")
+            system = None
+    return system
 
 
-# ====================== HOME PAGE (Improved Dropdown Visibility) ======================
+# ====================== HOME PAGE ======================
 @app.route("/")
 def home():
     return render_template_string("""
@@ -144,8 +158,9 @@ def home():
 
 @app.route("/start_quiz", methods=["POST"])
 def start_quiz():
-    if not system:
-        return "System not initialized. Please check logs.", 500
+    sys_instance = get_system()
+    if not sys_instance:
+        return "System not initialized. Please check server logs.", 500
 
     student_name = request.form.get("student_name", "Guest").strip()
     topic = request.form.get("topic", "Cyber Security").strip()
@@ -156,12 +171,12 @@ def start_quiz():
     session['student_id'] = student_name
     session['current_topic'] = topic
 
-    system.student_id = student_name
-    system.current_topic = topic
+    sys_instance.student_id = student_name
+    sys_instance.current_topic = topic
 
     try:
-        system.engine.start_session(student_id=student_name, topic=topic)
-        system.long_term_memory.get_student_knowledge(student_name)
+        sys_instance.engine.start_session(student_id=student_name, topic=topic)
+        sys_instance.long_term_memory.get_student_knowledge(student_name)
         logger.info(f"New quiz started by {student_name} on {topic}")
     except Exception as e:
         logger.error(f"start_quiz error: {e}")
@@ -286,14 +301,15 @@ def quiz_page():
 
 @app.route("/question")
 def get_question():
-    if not system:
+    sys_instance = get_system()
+    if not sys_instance:
         return jsonify({"error": "System not initialized"}), 500
 
     try:
-        q = system.engine.get_question(system.student_id)
-        system.last_question = q
+        q = sys_instance.engine.get_question(sys_instance.student_id)
+        sys_instance.last_question = q
 
-        session_data = system.engine.current_session.get(system.student_id, {})
+        session_data = sys_instance.engine.current_session.get(sys_instance.student_id, {})
 
         return jsonify({
             "question": q.question,
@@ -313,16 +329,17 @@ def get_question():
 
 @app.route("/answer", methods=["POST"])
 def answer():
-    if not system or not system.last_question:
+    sys_instance = get_system()
+    if not sys_instance or not sys_instance.last_question:
         return jsonify({"correct": False, "message": "No active question"}), 400
 
     try:
         data = request.json
         user_answer = data.get("answer", "").strip().upper()
 
-        result = system.engine.submit_answer(
-            student_id=system.student_id,
-            question=system.last_question,
+        result = sys_instance.engine.submit_answer(
+            student_id=sys_instance.student_id,
+            question=sys_instance.last_question,
             user_answer=user_answer,
             response_time=15,
             confidence=0.7
@@ -336,17 +353,18 @@ def answer():
 # ====================== RESULTS PAGE ======================
 @app.route("/results")
 def results():
-    if not system or system.student_id not in system.engine.current_session:
+    sys_instance = get_system()
+    if not sys_instance or sys_instance.student_id not in sys_instance.engine.current_session:
         return redirect("/")
 
-    session_data = system.engine.current_session[system.student_id]
+    session_data = sys_instance.engine.current_session[sys_instance.student_id]
     correct = session_data.get("correct_answers", 0)
     accuracy = round((correct / 10) * 100, 1)
     final_score = session_data.get("score", 0)
     topic = session_data.get("topic", "Cyber Security")
 
-    system.engine.update_leaderboard(system.student_id, final_score, accuracy, topic)
-    leaderboard = system.engine.get_leaderboard(limit=10)
+    sys_instance.engine.update_leaderboard(sys_instance.student_id, final_score, accuracy, topic)
+    leaderboard = sys_instance.engine.get_leaderboard(limit=10)
 
     ranked_leaderboard = [
         {"rank": i+1, "student_id": p.get("student_id", "Unknown"), 
@@ -451,7 +469,6 @@ def teacher_dashboard():
             });
             
             alert("✅ Question added successfully!");
-            // Clear inputs
             ['q','a','opt1','opt2','opt3','opt4'].forEach(id => document.getElementById(id).value = '');
         }
         </script>
@@ -461,9 +478,13 @@ def teacher_dashboard():
 
 @app.route("/add_teacher_question", methods=["POST"])
 def add_teacher_question():
+    sys_instance = get_system()
+    if not sys_instance:
+        return jsonify({"status": "error", "message": "System not initialized"}), 500
+
     try:
         data = request.json
-        system.engine.add_teacher_question(
+        sys_instance.engine.add_teacher_question(
             data["question"], 
             data["answer"], 
             data.get("topic", "Cyber Security"),
@@ -477,11 +498,11 @@ def add_teacher_question():
 
 # ====================== ENTRY POINT ======================
 if __name__ == "__main__":
-    print("="*60)
+    print("="*70)
     print("🌟 ADVANCED ADAPTIVE LEARNING SYSTEM STARTED")
-    print("="*60)
+    print("="*70)
     print("🔗 Student Portal : http://localhost:5000")
     print("👨‍🏫 Teacher Dashboard : http://localhost:5000/teacher")
     print("📌 Run with ngrok: ngrok http 5000")
-    print("="*60)
+    print("="*70)
     app.run(host='0.0.0.0', port=5000, debug=True)
