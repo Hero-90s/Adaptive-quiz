@@ -6,15 +6,12 @@ from flask import Flask, jsonify, request, render_template_string, session, redi
 from flask_cors import CORS
 import dotenv
 from rich.console import Console
-from Core.AI.llm_groq import LLMGroq
-from Core.Engine.adaptive_engine import AdaptiveEngine
-from Core.AI.prompt_engineering import PromptEngine
-from Core.AI.response_optimizer import ResponseOptimizer
-from Core.Memory.long_term_memory import LongTermMemory
-from Core.Engine.decision_model import DecisionModel   
-from Core.Engine.reinforcement_learning import ReinforcementModel
+
 dotenv.load_dotenv()
 console = Console()
+
+# Add current directory to Python path so 'Core' folder can be found on Render
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -24,42 +21,48 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = "adaptive-secret-key-2026"
 
-# Add current directory to Python path so Core folder can be found on Render
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
 # Global system instance
 system = None
 
 
-class AdaptiveLearningSystem:
-    def __init__(self):
-        try:
-            self.llm = LLMGroq(temperature=0.65)
-            self.engine = AdaptiveEngine()
-
-            # Full integration of all modules
-            self.prompt_engine = PromptEngine()
-            self.response_optimizer = ResponseOptimizer()
-            self.long_term_memory = LongTermMemory()
-            self.decision_model = DecisionModel()
-            self.reinforcement_model = ReinforcementModel()
-
-            self.student_id = ""
-            self.current_topic = "Cyber Security"
-            self.total_questions = 10
-            self.last_question = None
-
-            logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully with all modules")
-        except Exception as e:
-            logger.error(f"❌ Failed to initialize AdaptiveLearningSystem: {e}")
-            raise
-
-
-# Initialize system safely
+# Core imports with safe fallback
 try:
+    from Core.AI.llm_groq import LLMGroq
+    from Core.Engine.adaptive_engine import AdaptiveEngine
+    from Core.AI.prompt_engineering import PromptEngine
+    from Core.AI.response_optimizer import ResponseOptimizer
+    from Core.Memory.long_term_memory import LongTermMemory
+    from Core.Engine.decision_model import DecisionModel
+    from Core.Engine.reinforcement_learning import ReinforcementModel
+
+    class AdaptiveLearningSystem:
+        def __init__(self):
+            try:
+                self.llm = LLMGroq(temperature=0.65)
+                self.engine = AdaptiveEngine()
+
+                # Full integration of all modules
+                self.prompt_engine = PromptEngine()
+                self.response_optimizer = ResponseOptimizer()
+                self.long_term_memory = LongTermMemory()
+                self.decision_model = DecisionModel()
+                self.reinforcement_model = ReinforcementModel()
+
+                self.student_id = ""
+                self.current_topic = "Cyber Security"
+                self.total_questions = 10
+                self.last_question = None
+
+                logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully with all modules")
+            except Exception as e:
+                logger.error(f"❌ Failed to initialize AdaptiveLearningSystem: {e}")
+                raise
+
     system = AdaptiveLearningSystem()
+
 except Exception as e:
     logger.critical(f"Critical failure during system init: {e}")
+    logger.warning("⚠️ Running in limited mode - some features may not work")
     system = None
 
 
