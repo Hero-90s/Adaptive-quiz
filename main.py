@@ -37,13 +37,13 @@ class AdaptiveLearningSystem:
     def __init__(self):
         try:
             # Absolute imports - more reliable on deployment platforms
-            from Core.AI.llm_groq import LLMGroq
-            from Core.Engine.adaptive_engine import AdaptiveEngine
-            from Core.AI.prompt_engineering import PromptEngine
-            from Core.AI.response_optimizer import ResponseOptimizer
-            from Core.Memory.long_term_memory import LongTermMemory
-            from Core.Engine.decision_model import DecisionModel
-            from Core.Engine.reinforcement_learning import ReinforcementModel
+            # from Core.AI.llm_groq import LLMGroq
+            # from Core.Engine.adaptive_engine import AdaptiveEngine
+            # from Core.AI.prompt_engineering import PromptEngine
+            # from Core.AI.response_optimizer import ResponseOptimizer
+            # from Core.Memory.long_term_memory import LongTermMemory
+            # from Core.Engine.decision_model import DecisionModel
+            # from Core.Engine.reinforcement_learning import ReinforcementModel
 
             self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
