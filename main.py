@@ -1,4 +1,4 @@
-# main.py - Advanced Adaptive Learning System (Two Separate Links)
+# main.py - Advanced Adaptive Learning System
 import os
 import logging
 from flask import Flask, jsonify, request, render_template_string, session, redirect
@@ -29,12 +29,14 @@ app.secret_key = "adaptive-secret-key-2026"
 # Global system instance
 system = None
 
+
 class AdaptiveLearningSystem:
     def __init__(self):
         try:
             self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
 
+            # Full integration of all modules
             self.prompt_engine = PromptEngine()
             self.response_optimizer = ResponseOptimizer()
             self.long_term_memory = LongTermMemory()
@@ -46,11 +48,13 @@ class AdaptiveLearningSystem:
             self.total_questions = 10
             self.last_question = None
 
-            logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully")
+            logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully with all modules")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize: {e}")
+            logger.error(f"❌ Failed to initialize AdaptiveLearningSystem: {e}")
             raise
 
+
+# Initialize system safely
 try:
     system = AdaptiveLearningSystem()
 except Exception as e:
@@ -58,9 +62,9 @@ except Exception as e:
     system = None
 
 
-# ====================== WELCOME PAGE (Choice for Student or Teacher) ======================
+# ====================== HOME PAGE (Improved Dropdown Visibility) ======================
 @app.route("/")
-def welcome():
+def home():
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="en">
@@ -71,59 +75,25 @@ def welcome():
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             body { font-family: 'Inter', system-ui; }
-            .glass { background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); }
-        </style>
-    </head>
-    <body class="bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950 text-white min-h-screen">
-        <div class="max-w-4xl mx-auto pt-28 px-6">
-            <div class="text-center mb-16">
-                <h1 class="text-7xl font-bold mb-6 bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent">
-                    Adaptive Learning
-                </h1>
-                <p class="text-3xl text-indigo-200">Choose Your Role</p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-10">
-                <!-- Student Link -->
-                <a href="/student" 
-                   class="glass rounded-3xl p-12 text-center hover:scale-105 transition-all shadow-2xl border border-white/10">
-                    <div class="text-7xl mb-6">👨‍🎓</div>
-                    <h2 class="text-5xl font-semibold mb-4">Student</h2>
-                    <p class="text-xl text-indigo-200">Take Adaptive Quiz</p>
-                    <div class="mt-8 text-lg font-medium text-emerald-400">→ Enter Student Portal</div>
-                </a>
-
-                <!-- Teacher Link -->
-                <a href="/teacher" 
-                   class="glass rounded-3xl p-12 text-center hover:scale-105 transition-all shadow-2xl border border-white/10">
-                    <div class="text-7xl mb-6">👨‍🏫</div>
-                    <h2 class="text-5xl font-semibold mb-4">Teacher</h2>
-                    <p class="text-xl text-indigo-200">Add Questions & Manage Quiz</p>
-                    <div class="mt-8 text-lg font-medium text-emerald-400">→ Enter Teacher Portal</div>
-                </a>
-            </div>
-        </div>
-    </body>
-    </html>
-    """)
-
-
-# ====================== STUDENT ENTRY (Your Original Home Page) ======================
-@app.route("/student")
-def student_home():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Student Portal - Adaptive Learning</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-            body { font-family: 'Inter', system-ui; }
-            .glass { background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); }
-            select { color: white; background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
-            select option { color: #1f2937; background-color: white; padding: 12px 16px; }
+            .glass { 
+                background: rgba(255,255,255,0.12); 
+                backdrop-filter: blur(20px); 
+            }
+            select {
+                color: white;
+                background-color: rgba(255,255,255,0.15);
+                border: 1px solid rgba(255,255,255,0.3);
+            }
+            select option {
+                color: #1f2937;
+                background-color: white;
+                padding: 12px 16px;
+            }
+            select:focus {
+                background-color: rgba(255,255,255,0.25);
+                border-color: rgb(129 140 248);
+                box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3);
+            }
         </style>
     </head>
     <body class="bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950 text-white min-h-screen">
@@ -132,7 +102,7 @@ def student_home():
                 <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent">
                     Adaptive Learning
                 </h1>
-                <p class="text-2xl text-indigo-200">Student Portal</p>
+                <p class="text-2xl text-indigo-200">Personalized AI Tutor • 10 Adaptive Questions</p>
             </div>
             
             <div class="glass rounded-3xl p-10 shadow-2xl border border-white/10">
@@ -141,9 +111,11 @@ def student_home():
                         <input type="text" name="student_name" placeholder="Enter your Name or ID" 
                                class="w-full p-4 rounded-2xl bg-white/10 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-lg" required>
                     </div>
+                    
                     <div>
                         <label class="block text-sm text-indigo-300 mb-2">Select Subject</label>
-                        <select name="topic" class="w-full p-4 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <select name="topic" 
+                                class="w-full p-4 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-400">
                             <option value="Cyber Security">🔒 Cyber Security</option>
                             <option value="Python Programming">🐍 Python Programming</option>
                             <option value="Data Structures">📚 Data Structures</option>
@@ -153,11 +125,14 @@ def student_home():
                             <option value="Artificial Intelligence">🤖 Artificial Intelligence</option>
                         </select>
                     </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-500 via-violet-600 to-purple-600 hover:from-indigo-600 hover:via-violet-700 hover:to-purple-700 py-6 rounded-2xl font-semibold text-xl transition-all shadow-lg">
+
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-indigo-500 via-violet-600 to-purple-600 hover:from-indigo-600 hover:via-violet-700 hover:to-purple-700 py-6 rounded-2xl font-semibold text-xl transition-all duration-300 shadow-lg">
                         🚀 Start Adaptive Test
                     </button>
                 </form>
             </div>
+            
             <p class="text-center text-white/60 mt-8 text-sm">10 questions • Adaptive difficulty • Real-time feedback</p>
         </div>
     </body>
@@ -165,7 +140,6 @@ def student_home():
     """)
 
 
-# ====================== YOUR ORIGINAL ROUTES (Unchanged) ======================
 @app.route("/start_quiz", methods=["POST"])
 def start_quiz():
     if not system:
@@ -174,28 +148,35 @@ def start_quiz():
     student_name = request.form.get("student_name", "Guest").strip()
     topic = request.form.get("topic", "Cyber Security").strip()
 
+    if not student_name:
+        student_name = "Guest"
+
     session['student_id'] = student_name
     session['current_topic'] = topic
+
     system.student_id = student_name
     system.current_topic = topic
 
     try:
         system.engine.start_session(student_id=student_name, topic=topic)
+        # Optional: Long-term memory integration
         system.long_term_memory.get_student_knowledge(student_name)
+        logger.info(f"New quiz started by {student_name} on {topic}")
     except Exception as e:
         logger.error(f"start_quiz error: {e}")
 
     return redirect("/quiz")
 
-
+# ====================== QUIZ PAGE ======================
 @app.route("/quiz")
 def quiz_page():
-    # Your original quiz page (unchanged)
     return render_template_string("""
     <!DOCTYPE html>
     <html><head><meta charset="UTF-8"><title>Adaptive Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>.glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(16px); }</style>
+    <style>
+        .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(16px); }
+    </style>
     </head>
     <body class="bg-gradient-to-br from-indigo-950 to-purple-950 text-white min-h-screen flex items-center justify-center">
         <div class="max-w-2xl w-full mx-4 glass rounded-3xl p-10 shadow-2xl">
@@ -206,9 +187,16 @@ def quiz_page():
                 </div>
                 <div id="difficulty" class="px-5 py-2 bg-white/10 rounded-2xl text-sm font-medium"></div>
             </div>
+            
             <h2 id="question-text" class="text-3xl font-medium mb-10 min-h-[120px] leading-tight"></h2>
+            
             <div id="options" class="space-y-4 mb-10"></div>
-            <button onclick="submitAnswer()" class="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 py-6 rounded-2xl font-semibold text-xl transition-all">Submit Answer</button>
+            
+            <button onclick="submitAnswer()" 
+                    class="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 py-6 rounded-2xl font-semibold text-xl transition-all">
+                Submit Answer
+            </button>
+            
             <div id="feedback" class="mt-10 text-center text-xl min-h-[80px]"></div>
         </div>
 
@@ -218,20 +206,30 @@ def quiz_page():
 
         async function loadQuestion() {
             if (isQuizOver) return;
+
             try {
                 const res = await fetch('/question');
                 const data = await res.json();
+
                 if (data.redirect === "/results") {
                     isQuizOver = true;
                     window.location.href = "/results";
                     return;
                 }
+
+                if (data.error) {
+                    document.getElementById('question-text').innerHTML = `<span class="text-red-400">⚠️ ${data.error}</span>`;
+                    return;
+                }
+
                 document.getElementById('current-q').textContent = data.questions_asked || 1;
                 document.getElementById('difficulty').innerHTML = `Difficulty: <span class="text-emerald-400">${data.difficulty || 2.5}</span>`;
+
                 document.getElementById('question-text').innerHTML = data.question;
 
                 const optionsDiv = document.getElementById('options');
                 optionsDiv.innerHTML = '';
+
                 if (data.options && data.options.length > 0) {
                     data.options.forEach((opt, index) => {
                         const letter = String.fromCharCode(65 + index);
@@ -246,22 +244,36 @@ def quiz_page():
                         optionsDiv.appendChild(div);
                     });
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Load question error:", e);
+            }
         }
 
         async function submitAnswer() {
-            if (!selectedAnswer) return alert("Please select an option");
+            if (!selectedAnswer) {
+                alert("⚠️ Please select an option");
+                return;
+            }
+            
             const res = await fetch('/answer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({answer: selectedAnswer})
             });
+            
             const result = await res.json();
+            
             const feedback = document.getElementById('feedback');
-            feedback.innerHTML = result.correct 
-                ? `<span class="text-emerald-400">✅ ${result.message || 'Excellent!'}</span>`
-                : `<span class="text-red-400">❌ ${result.message || 'Incorrect'}</span>`;
-            setTimeout(() => { selectedAnswer = ''; loadQuestion(); }, 1700);
+            if (result.correct) {
+                feedback.innerHTML = `<span class="text-emerald-400">✅ ${result.message || 'Excellent!'}</span>`;
+            } else {
+                feedback.innerHTML = `<span class="text-red-400">❌ ${result.message || 'Incorrect'}</span>`;
+            }
+
+            setTimeout(() => { 
+                selectedAnswer = ''; 
+                loadQuestion(); 
+            }, 1700);
         }
 
         window.onload = loadQuestion;
@@ -270,17 +282,17 @@ def quiz_page():
     """)
 
 
-# Keep all your other routes exactly as they were (question, answer, results, teacher, add_teacher_question)
-# ... (I kept them the same as your original code to avoid any changes)
-
 @app.route("/question")
 def get_question():
     if not system:
         return jsonify({"error": "System not initialized"}), 500
+
     try:
         q = system.engine.get_question(system.student_id)
         system.last_question = q
+
         session_data = system.engine.current_session.get(system.student_id, {})
+
         return jsonify({
             "question": q.question,
             "topic": q.topic,
@@ -289,8 +301,10 @@ def get_question():
             "questions_asked": session_data.get("questions_asked", 1)
         })
     except Exception as e:
-        if "10 questions" in str(e).lower() or "limit reached" in str(e).lower():
+        error_str = str(e).lower()
+        if "10 questions" in error_str or "limit reached" in error_str:
             return jsonify({"redirect": "/results"}), 200
+
         logger.error(f"Question generation error: {e}")
         return jsonify({"error": "Failed to generate question. Please try again."}), 500
 
@@ -299,9 +313,11 @@ def get_question():
 def answer():
     if not system or not system.last_question:
         return jsonify({"correct": False, "message": "No active question"}), 400
+
     try:
         data = request.json
         user_answer = data.get("answer", "").strip().upper()
+
         result = system.engine.submit_answer(
             student_id=system.student_id,
             question=system.last_question,
@@ -315,10 +331,12 @@ def answer():
         return jsonify({"correct": False, "message": "Error processing your answer"}), 500
 
 
+# ====================== RESULTS PAGE ======================
 @app.route("/results")
 def results():
     if not system or system.student_id not in system.engine.current_session:
         return redirect("/")
+
     session_data = system.engine.current_session[system.student_id]
     correct = session_data.get("correct_answers", 0)
     accuracy = round((correct / 10) * 100, 1)
@@ -342,21 +360,43 @@ def results():
     <body class="bg-gradient-to-br from-indigo-950 to-purple-950 text-white min-h-screen flex items-center justify-center">
         <div class="max-w-3xl w-full mx-4 glass rounded-3xl p-12 shadow-2xl">
             <h1 class="text-5xl font-bold mb-8 text-center">🎉 Quiz Completed Successfully!</h1>
+            
             <div class="text-center mb-12">
                 <div class="text-7xl font-bold mb-4">{{ correct }}/10</div>
                 <div class="text-4xl text-emerald-400">Accuracy: {{ accuracy }}%</div>
                 <div class="text-3xl mt-6">Final Score: <strong class="text-yellow-300">{{ final_score }}</strong></div>
                 <p class="mt-4 text-indigo-200">Topic: <strong>{{ topic }}</strong></p>
             </div>
-            <a href="/" class="block text-center py-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl font-semibold text-xl hover:scale-105 transition-all">
-                Take Another Quiz
-            </a>
+
+            <h2 class="text-2xl font-semibold mb-6 text-center">🏆 Global Leaderboard</h2>
+            <div class="bg-white/10 rounded-2xl p-6 max-h-96 overflow-auto">
+                {% for player in ranked_leaderboard %}
+                <div class="flex justify-between items-center py-4 border-b border-white/20 last:border-none">
+                    <div class="flex items-center gap-4">
+                        <span class="text-3xl font-bold text-yellow-400">#{{ player.rank }}</span>
+                        <span class="text-xl">{{ player.student_id }}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-semibold text-lg">{{ player.score }} pts</span><br>
+                        <span class="text-emerald-400">{{ player.accuracy }}%</span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-center py-12 text-gray-400">No scores recorded yet. Complete a quiz to appear here!</p>
+                {% endfor %}
+            </div>
+
+            <div class="mt-12 flex gap-4 justify-center">
+                <a href="/" class="px-10 py-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl font-semibold text-xl hover:scale-105 transition-all">
+                    Take Another Quiz
+                </a>
+            </div>
         </div>
     </body></html>
     """, correct=correct, accuracy=accuracy, final_score=final_score, topic=topic, ranked_leaderboard=ranked_leaderboard)
 
 
-# ====================== TEACHER DASHBOARD (Your Original) ======================
+# ====================== TEACHER DASHBOARD ======================
 @app.route("/teacher")
 def teacher_dashboard():
     return render_template_string("""
@@ -409,6 +449,7 @@ def teacher_dashboard():
             });
             
             alert("✅ Question added successfully!");
+            // Clear inputs
             ['q','a','opt1','opt2','opt3','opt4'].forEach(id => document.getElementById(id).value = '');
         }
         </script>
@@ -434,11 +475,11 @@ def add_teacher_question():
 
 # ====================== ENTRY POINT ======================
 if __name__ == "__main__":
-    print("="*70)
+    print("="*60)
     print("🌟 ADVANCED ADAPTIVE LEARNING SYSTEM STARTED")
-    print("="*70)
-    print("🔗 Student Portal  : http://localhost:5000/student")
-    print("👨‍🏫 Teacher Portal : http://localhost:5000/teacher")
-    print("📌 Run with ngrok  : ngrok http 5000")
-    print("="*70)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("="*60)
+    print("🔗 Student Portal : http://localhost:5000")
+    print("👨‍🏫 Teacher Dashboard : http://localhost:5000/teacher")
+    print("📌 Run with ngrok: ngrok http 5000")
+    print("="*60)
+    app.run(port=5000, debug=True) 
