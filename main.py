@@ -1,4 +1,4 @@
-# main.py - Advanced Adaptive Learning System (Fixed for Render)
+# main.py - Advanced Adaptive Learning System (Final Fixed Version)
 import os
 import sys
 import logging
@@ -7,16 +7,7 @@ from flask_cors import CORS
 import dotenv
 from rich.console import Console
 
-
-from Core.AI.llm_groq import LLMGroq
-from Core.Engine.adaptive_engine import AdaptiveEngine
-from Core.AI.prompt_engineering import PromptEngine
-from Core.AI.response_optimizer import ResponseOptimizer
-from Core.Memory.long_term_memory import LongTermMemory
-from Core.Engine.decision_model import DecisionModel
-from Core.Engine.reinforcement_learning import ReinforcementModel
-
-# Add current directory to Python path (Fix for 'No module named Core')
+# Add current directory to Python path so 'Core' folder can be found on Render
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 dotenv.load_dotenv()
@@ -37,6 +28,13 @@ system = None
 class AdaptiveLearningSystem:
     def __init__(self):
         try:
+            from Core.AI.llm_groq import LLMGroq
+            from Core.Engine.adaptive_engine import AdaptiveEngine
+            from Core.AI.prompt_engineering import PromptEngine
+            from Core.AI.response_optimizer import ResponseOptimizer
+            from Core.Memory.long_term_memory import LongTermMemory
+            from Core.Engine.decision_model import DecisionModel
+            from Core.Engine.reinforcement_learning import ReinforcementModel
             self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
 
