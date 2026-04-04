@@ -6,9 +6,15 @@ from flask import Flask, jsonify, request, render_template_string, session, redi
 from flask_cors import CORS
 import dotenv
 
-# ====================== PATH SETUP ======================
+# ====================== PATH SETUP (Stronger for Render) ======================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
+
+# Extra paths to help find Core package on Render
+sys.path.insert(0, os.path.join(BASE_DIR, "Core"))
+sys.path.insert(0, os.path.join(BASE_DIR, "Core", "AI"))
+sys.path.insert(0, os.path.join(BASE_DIR, "Core", "Engine"))
+sys.path.insert(0, os.path.join(BASE_DIR, "Core", "Memory"))
 
 dotenv.load_dotenv()
 
@@ -85,9 +91,9 @@ def home():
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             body { font-family: 'Inter', system-ui; }
-            .glass { 
-                background: rgba(255,255,255,0.12); 
-                backdrop-filter: blur(20px); 
+            .glass {
+                background: rgba(255,255,255,0.12);
+                backdrop-filter: blur(20px);
             }
             select {
                 color: white;
@@ -114,17 +120,17 @@ def home():
                 </h1>
                 <p class="text-2xl text-indigo-200">Personalized AI Tutor • 10 Adaptive Questions</p>
             </div>
-            
+           
             <div class="glass rounded-3xl p-10 shadow-2xl border border-white/10">
                 <form action="/start_quiz" method="POST" class="space-y-6">
                     <div>
-                        <input type="text" name="student_name" placeholder="Enter your Name or ID" 
+                        <input type="text" name="student_name" placeholder="Enter your Name or ID"
                                class="w-full p-4 rounded-2xl bg-white/10 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-lg" required>
                     </div>
-                    
+                   
                     <div>
                         <label class="block text-sm text-indigo-300 mb-2">Select Subject</label>
-                        <select name="topic" 
+                        <select name="topic"
                                 class="w-full p-4 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-400">
                             <option value="Cyber Security">🔒 Cyber Security</option>
                             <option value="Python Programming">🐍 Python Programming</option>
@@ -135,14 +141,13 @@ def home():
                             <option value="Artificial Intelligence">🤖 Artificial Intelligence</option>
                         </select>
                     </div>
-
-                    <button type="submit" 
+                    <button type="submit"
                             class="w-full bg-gradient-to-r from-indigo-500 via-violet-600 to-purple-600 hover:from-indigo-600 hover:via-violet-700 hover:to-purple-700 py-6 rounded-2xl font-semibold text-xl transition-all duration-300 shadow-lg">
                         🚀 Start Adaptive Test
                     </button>
                 </form>
             </div>
-            
+           
             <p class="text-center text-white/60 mt-8 text-sm">10 questions • Adaptive difficulty • Real-time feedback</p>
         </div>
     </body>
@@ -155,26 +160,20 @@ def start_quiz():
     sys_instance = get_system()
     if not sys_instance:
         return "System not initialized. Please check server logs.", 500
-
     student_name = request.form.get("student_name", "Guest").strip()
     topic = request.form.get("topic", "Cyber Security").strip()
-
     if not student_name:
         student_name = "Guest"
-
     session['student_id'] = student_name
     session['current_topic'] = topic
-
     sys_instance.student_id = student_name
     sys_instance.current_topic = topic
-
     try:
         sys_instance.engine.start_session(student_id=student_name, topic=topic)
         sys_instance.long_term_memory.get_student_knowledge(student_name)
         logger.info(f"New quiz started by {student_name} on {topic}")
     except Exception as e:
         logger.error(f"start_quiz error: {e}")
-
     return redirect("/quiz")
 
 
@@ -198,49 +197,40 @@ def quiz_page():
                 </div>
                 <div id="difficulty" class="px-5 py-2 bg-white/10 rounded-2xl text-sm font-medium"></div>
             </div>
-            
+           
             <h2 id="question-text" class="text-3xl font-medium mb-10 min-h-[120px] leading-tight"></h2>
-            
+           
             <div id="options" class="space-y-4 mb-10"></div>
-            
-            <button onclick="submitAnswer()" 
+           
+            <button onclick="submitAnswer()"
                     class="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 py-6 rounded-2xl font-semibold text-xl transition-all">
                 Submit Answer
             </button>
-            
+           
             <div id="feedback" class="mt-10 text-center text-xl min-h-[80px]"></div>
         </div>
-
         <script>
         let selectedAnswer = '';
         let isQuizOver = false;
-
         async function loadQuestion() {
             if (isQuizOver) return;
-
             try {
                 const res = await fetch('/question');
                 const data = await res.json();
-
                 if (data.redirect === "/results") {
                     isQuizOver = true;
                     window.location.href = "/results";
                     return;
                 }
-
                 if (data.error) {
                     document.getElementById('question-text').innerHTML = `<span class="text-red-400">⚠️ ${data.error}</span>`;
                     return;
                 }
-
                 document.getElementById('current-q').textContent = data.questions_asked || 1;
                 document.getElementById('difficulty').innerHTML = `Difficulty: <span class="text-emerald-400">${data.difficulty || 2.5}</span>`;
-
                 document.getElementById('question-text').innerHTML = data.question;
-
                 const optionsDiv = document.getElementById('options');
                 optionsDiv.innerHTML = '';
-
                 if (data.options && data.options.length > 0) {
                     data.options.forEach((opt, index) => {
                         const letter = String.fromCharCode(65 + index);
@@ -259,34 +249,31 @@ def quiz_page():
                 console.error("Load question error:", e);
             }
         }
-
         async function submitAnswer() {
             if (!selectedAnswer) {
                 alert("⚠️ Please select an option");
                 return;
             }
-            
+           
             const res = await fetch('/answer', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({answer: selectedAnswer})
             });
-            
+           
             const result = await res.json();
-            
+           
             const feedback = document.getElementById('feedback');
             if (result.correct) {
                 feedback.innerHTML = `<span class="text-emerald-400">✅ ${result.message || 'Excellent!'}</span>`;
             } else {
                 feedback.innerHTML = `<span class="text-red-400">❌ ${result.message || 'Incorrect'}</span>`;
             }
-
-            setTimeout(() => { 
-                selectedAnswer = ''; 
-                loadQuestion(); 
+            setTimeout(() => {
+                selectedAnswer = '';
+                loadQuestion();
             }, 1700);
         }
-
         window.onload = loadQuestion;
         </script>
     </body></html>
@@ -298,13 +285,10 @@ def get_question():
     sys_instance = get_system()
     if not sys_instance:
         return jsonify({"error": "System not initialized"}), 500
-
     try:
         q = sys_instance.engine.get_question(sys_instance.student_id)
         sys_instance.last_question = q
-
         session_data = sys_instance.engine.current_session.get(sys_instance.student_id, {})
-
         return jsonify({
             "question": q.question,
             "topic": q.topic,
@@ -316,7 +300,6 @@ def get_question():
         error_str = str(e).lower()
         if "10 questions" in error_str or "limit reached" in error_str:
             return jsonify({"redirect": "/results"}), 200
-
         logger.error(f"Question generation error: {e}")
         return jsonify({"error": "Failed to generate question. Please try again."}), 500
 
@@ -326,11 +309,9 @@ def answer():
     sys_instance = get_system()
     if not sys_instance or not sys_instance.last_question:
         return jsonify({"correct": False, "message": "No active question"}), 400
-
     try:
         data = request.json
         user_answer = data.get("answer", "").strip().upper()
-
         result = sys_instance.engine.submit_answer(
             student_id=sys_instance.student_id,
             question=sys_instance.last_question,
@@ -350,22 +331,18 @@ def results():
     sys_instance = get_system()
     if not sys_instance or sys_instance.student_id not in sys_instance.engine.current_session:
         return redirect("/")
-
     session_data = sys_instance.engine.current_session[sys_instance.student_id]
     correct = session_data.get("correct_answers", 0)
     accuracy = round((correct / 10) * 100, 1)
     final_score = session_data.get("score", 0)
     topic = session_data.get("topic", "Cyber Security")
-
     sys_instance.engine.update_leaderboard(sys_instance.student_id, final_score, accuracy, topic)
     leaderboard = sys_instance.engine.get_leaderboard(limit=10)
-
     ranked_leaderboard = [
-        {"rank": i+1, "student_id": p.get("student_id", "Unknown"), 
+        {"rank": i+1, "student_id": p.get("student_id", "Unknown"),
          "score": p.get("score", 0), "accuracy": p.get("accuracy", 0)}
         for i, p in enumerate(leaderboard)
     ]
-
     return render_template_string("""
     <!DOCTYPE html>
     <html><head><meta charset="UTF-8"><title>Quiz Results</title>
@@ -374,14 +351,13 @@ def results():
     <body class="bg-gradient-to-br from-indigo-950 to-purple-950 text-white min-h-screen flex items-center justify-center">
         <div class="max-w-3xl w-full mx-4 glass rounded-3xl p-12 shadow-2xl">
             <h1 class="text-5xl font-bold mb-8 text-center">🎉 Quiz Completed Successfully!</h1>
-            
+           
             <div class="text-center mb-12">
                 <div class="text-7xl font-bold mb-4">{{ correct }}/10</div>
                 <div class="text-4xl text-emerald-400">Accuracy: {{ accuracy }}%</div>
                 <div class="text-3xl mt-6">Final Score: <strong class="text-yellow-300">{{ final_score }}</strong></div>
                 <p class="mt-4 text-indigo-200">Topic: <strong>{{ topic }}</strong></p>
             </div>
-
             <h2 class="text-2xl font-semibold mb-6 text-center">🏆 Global Leaderboard</h2>
             <div class="bg-white/10 rounded-2xl p-6 max-h-96 overflow-auto">
                 {% for player in ranked_leaderboard %}
@@ -399,7 +375,6 @@ def results():
                 <p class="text-center py-12 text-gray-400">No scores recorded yet. Complete a quiz to appear here!</p>
                 {% endfor %}
             </div>
-
             <div class="mt-12 flex gap-4 justify-center">
                 <a href="/" class="px-10 py-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl font-semibold text-xl hover:scale-105 transition-all">
                     Take Another Quiz
@@ -432,8 +407,8 @@ def teacher_dashboard():
                     <input id="opt4" placeholder="Option D" class="p-5 rounded-2xl bg-zinc-800 text-white">
                 </div>
                 <input id="topic" value="Cyber Security" class="w-full mb-8 p-5 rounded-2xl bg-zinc-800 text-white">
-                
-                <button onclick="addQuestion()" 
+               
+                <button onclick="addQuestion()"
                         class="w-full bg-emerald-600 hover:bg-emerald-700 py-6 rounded-2xl font-bold text-xl transition-all">
                     ➕ Add Question to Database
                 </button>
@@ -450,18 +425,16 @@ def teacher_dashboard():
                 document.getElementById('opt3').value.trim(),
                 document.getElementById('opt4').value.trim()
             ];
-
             if (!q || !a) {
                 alert("❌ Question and correct option are required");
                 return;
             }
-
             await fetch('/add_teacher_question', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({question: q, answer: a, topic: topic, options: options})
             });
-            
+           
             alert("✅ Question added successfully!");
             ['q','a','opt1','opt2','opt3','opt4'].forEach(id => document.getElementById(id).value = '');
         }
@@ -475,12 +448,11 @@ def add_teacher_question():
     sys_instance = get_system()
     if not sys_instance:
         return jsonify({"status": "error", "message": "System not initialized"}), 500
-
     try:
         data = request.json
         sys_instance.engine.add_teacher_question(
-            data["question"], 
-            data["answer"], 
+            data["question"],
+            data["answer"],
             data.get("topic", "Cyber Security"),
             data.get("options")
         )
