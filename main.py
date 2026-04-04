@@ -5,18 +5,12 @@ import logging
 from flask import Flask, jsonify, request, render_template_string, session, redirect
 from flask_cors import CORS
 import dotenv
-from rich.console import Console
 
-# ====================== PATH SETUP (Critical for Render) ======================
+# ====================== PATH SETUP ======================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
 
-# Ensure Core is treated as a package
-if not os.path.exists(os.path.join(BASE_DIR, "Core")):
-    logging.error("❌ 'Core' directory not found! Make sure it exists in the root.")
-
 dotenv.load_dotenv()
-console = Console()
 
 # Setup logging
 logging.basicConfig(
@@ -29,14 +23,14 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = "adaptive-secret-key-2026"
 
-# Global system instance (will be initialized lazily)
+# Global system instance
 system = None
 
 
 class AdaptiveLearningSystem:
     def __init__(self):
         try:
-            # Absolute imports - more reliable on deployment platforms
+            # All Core imports moved here - this is the main fix
             from Core.AI.llm_groq import LLMGroq
             from Core.Engine.adaptive_engine import AdaptiveEngine
             from Core.AI.prompt_engineering import PromptEngine
@@ -44,6 +38,8 @@ class AdaptiveLearningSystem:
             from Core.Memory.long_term_memory import LongTermMemory
             from Core.Engine.decision_model import DecisionModel
             from Core.Engine.reinforcement_learning import ReinforcementModel
+
+            self.llm = LLMGroq(temperature=0.65)
             self.engine = AdaptiveEngine()
 
             # Full integration of all modules
@@ -65,7 +61,7 @@ class AdaptiveLearningSystem:
 
 
 def get_system():
-    """Lazy initialization of the system to prevent startup crashes"""
+    """Lazy initialization - This prevents startup crash on Render"""
     global system
     if system is None:
         try:
@@ -503,4 +499,4 @@ if __name__ == "__main__":
     print("👨‍🏫 Teacher Dashboard : http://localhost:5000/teacher")
     print("📌 Run with ngrok: ngrok http 5000")
     print("="*70)
-     app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
