@@ -1,16 +1,17 @@
-# main.py - Advanced Adaptive Learning System (Fixed for Render)
+# main.py - Advanced Adaptive Learning System (Final Fixed for Render)
 import os
 import sys
 import logging
+import traceback
 from flask import Flask, jsonify, request, render_template_string, session, redirect
 from flask_cors import CORS
 import dotenv
 
-# ====================== PATH SETUP (Stronger for Render) ======================
+# ====================== STRONG PATH SETUP FOR RENDER ======================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
 
-# Extra paths to help find Core package on Render
+# Extra paths to help find Core and its subfolders
 sys.path.insert(0, os.path.join(BASE_DIR, "Core"))
 sys.path.insert(0, os.path.join(BASE_DIR, "Core", "AI"))
 sys.path.insert(0, os.path.join(BASE_DIR, "Core", "Engine"))
@@ -25,6 +26,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Debug information (very useful on Render)
+logger.info(f"BASE_DIR: {BASE_DIR}")
+logger.info(f"Core folder exists: {os.path.exists(os.path.join(BASE_DIR, 'Core'))}")
+logger.info(f"AI folder exists: {os.path.exists(os.path.join(BASE_DIR, 'Core', 'AI'))}")
+logger.info(f"Current sys.path: {sys.path[:8]}")
+
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "adaptive-secret-key-2026"
@@ -36,7 +43,7 @@ system = None
 class AdaptiveLearningSystem:
     def __init__(self):
         try:
-            # All Core imports moved here - this is the main fix
+            # All Core imports - kept exactly as you had
             from Core.AI.llm_groq import LLMGroq
             from Core.Engine.adaptive_engine import AdaptiveEngine
             from Core.AI.prompt_engineering import PromptEngine
@@ -63,6 +70,7 @@ class AdaptiveLearningSystem:
             logger.info("🚀 Advanced AdaptiveLearningSystem initialized successfully with all modules")
         except Exception as e:
             logger.error(f"❌ Failed to initialize AdaptiveLearningSystem: {e}")
+            logger.error(traceback.format_exc())
             raise
 
 
@@ -74,6 +82,7 @@ def get_system():
             system = AdaptiveLearningSystem()
         except Exception as e:
             logger.critical(f"Critical failure during system init: {e}")
+            logger.critical(traceback.format_exc())
             system = None
     return system
 
