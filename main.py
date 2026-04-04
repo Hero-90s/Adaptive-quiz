@@ -37,15 +37,13 @@ class AdaptiveLearningSystem:
     def __init__(self):
         try:
             # Absolute imports - more reliable on deployment platforms
-            # from Core.AI.llm_groq import LLMGroq
-            # from Core.Engine.adaptive_engine import AdaptiveEngine
-            # from Core.AI.prompt_engineering import PromptEngine
-            # from Core.AI.response_optimizer import ResponseOptimizer
-            # from Core.Memory.long_term_memory import LongTermMemory
-            # from Core.Engine.decision_model import DecisionModel
-            # from Core.Engine.reinforcement_learning import ReinforcementModel
-
-            self.llm = LLMGroq(temperature=0.65)
+            from Core.AI.llm_groq import LLMGroq
+            from Core.Engine.adaptive_engine import AdaptiveEngine
+            from Core.AI.prompt_engineering import PromptEngine
+            from Core.AI.response_optimizer import ResponseOptimizer
+            from Core.Memory.long_term_memory import LongTermMemory
+            from Core.Engine.decision_model import DecisionModel
+            from Core.Engine.reinforcement_learning import ReinforcementModel
             self.engine = AdaptiveEngine()
 
             # Full integration of all modules
@@ -505,4 +503,4 @@ if __name__ == "__main__":
     print("👨‍🏫 Teacher Dashboard : http://localhost:5000/teacher")
     print("📌 Run with ngrok: ngrok http 5000")
     print("="*70)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+     app.run(host='0.0.0.0', port=5000, debug=True)
